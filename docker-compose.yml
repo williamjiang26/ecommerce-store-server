@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  product-service:
+    build: ./product-service
+    container_name: product_service_container
+    ports:
+      - "8000:8000" # Maps localhost:8000 -> container:8000
+    volumes:
+      - ./product-service:/app # Enables auto-reload mapping for development
+    environment:
+      - ENV=development
+
+  chat-service:
+    build: ./chat-service
+    container_name: chat_service_container
+    ports:
+      - "8001:8001" # Maps localhost:8001 -> container:8001
+    volumes:
+      - ./chat-service:/app # Enables auto-reload mapping for development
+    environment:
+      - ENV=development
