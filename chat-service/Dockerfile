@@ -1,12 +1,26 @@
 FROM python:3.11-slim
 
+# 2. Set environment configurations to optimize Python inside Docker
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# 3. Set the working directory inside the container
 WORKDIR /app
 
-# Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# 4. Install system dependencies needed for compiler compilation (if any)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the rest of the application code
+# 5. Copy over requirements first to leverage Docker's caching mechanism
+COPY requirements.txt .
+
+# 6. Install Python package dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# 7. Copy the rest of your application code into the container workspace
 COPY . .
 
 # Expose the internal container port for Chat (GraphQL)

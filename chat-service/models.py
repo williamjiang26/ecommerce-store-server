@@ -1,16 +1,24 @@
-import strawberry
+from dotenv import load_dotenv
+load_dotenv()
+import os
 
+from datetime import datetime
+from typing import Optional
+from sqlmodel import SQLModel, Field, create_engine
 
+ 
 
-@strawberry.type
-class Message:
-    sender: str
-    text: str
+DATABASE_URL =  os.getenv("MESSAGE_DATABASE_URL")
+# Create the async engine
+engine = create_engine(DATABASE_URL, echo=True)
 
-# get chat stream
-# how does this work, when new conversation comes up, a conversation is added to the list
-# add conversation
-# delete conversation
-# create a manual conversational chat between admin dashboard and website
-# handle multiple conversations in the dashboard
-# both clients send message to the server and poll the server for new message, the render the chats different based on user on their own end
+class MessageTable(SQLModel, table=True):
+    __tablename__ = "messages"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    sender_type: str = Field(nullable=False)
+    sender_name: str = Field(nullable=False)
+    text: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
+def init_db():
+    SQLModel.metadata.create_all(engine)

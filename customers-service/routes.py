@@ -28,7 +28,7 @@ def get_customers():
         statement = select(CustomerTable)
         db_customers = session.exec(statement).all()
         return db_customers
-# post customer
+# post customer - create new user
 def post_customer(id: int, name: str):
     with Session(engine) as session:
         # 2. Create an instance of your database table row model

@@ -1,22 +1,217 @@
 version: '3.8'
 
 services:
-  product-service:
-    build: ./product-service
-    container_name: product_service_container
+  # --- FASTAPI APP SERVICE ---
+  web:
+    build: .
+    container_name: fastapi_chat_app
     ports:
-      - "8000:8000" # Maps localhost:8000 -> container:8000
-    volumes:
-      - ./product-service:/app # Enables auto-reload mapping for development
+      - "8000:8000"
     environment:
-      - ENV=development
+      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGIN=http://localhost:3000
+    volumes:
+      - .:/app  # Live-reloads code modifications instantly during local development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - chat_network
 
-  chat-service:
-    build: ./chat-service
-    container_name: chat_service_container
-    ports:
-      - "8001:8001" # Maps localhost:8001 -> container:8001
-    volumes:
-      - ./chat-service:/app # Enables auto-reload mapping for development
+  # --- POSTGRES DATABASE SERVICE ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
     environment:
-      - ENV=development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret_password
+      - POSTGRES_DB=chat_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
+    networks:
+      - chat_network
+
+  # --- REDIS PUB/SUB SERVICE ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - chat_network
+
+# Structural storage volumes declaration
+volumes:
+  postgres_data:
+
+# Isolated virtual network routing definition
+networks:
+  chat_network:
+    driver: bridgeversion: '3.8'
+
+services:
+  # --- FASTAPI APP SERVICE ---
+  web:
+    build: .
+    container_name: fastapi_chat_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGIN=http://localhost:3000
+    volumes:
+      - .:/app  # Live-reloads code modifications instantly during local development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - chat_network
+
+  # --- POSTGRES DATABASE SERVICE ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret_password
+      - POSTGRES_DB=chat_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
+    networks:
+      - chat_network
+
+  # --- REDIS PUB/SUB SERVICE ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - chat_network
+
+# Structural storage volumes declaration
+volumes:
+  postgres_data:
+
+# Isolated virtual network routing definition
+networks:
+  chat_network:
+    driver: bridgeversion: '3.8'
+
+services:
+  # --- FASTAPI APP SERVICE ---
+  web:
+    build: .
+    container_name: fastapi_chat_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGIN=http://localhost:3000
+    volumes:
+      - .:/app  # Live-reloads code modifications instantly during local development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - chat_network
+
+  # --- POSTGRES DATABASE SERVICE ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret_password
+      - POSTGRES_DB=chat_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
+    networks:
+      - chat_network
+
+  # --- REDIS PUB/SUB SERVICE ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - chat_network
+
+# Structural storage volumes declaration
+volumes:
+  postgres_data:
+
+# Isolated virtual network routing definition
+networks:
+  chat_network:
+    driver: bridgeversion: '3.8'
+
+services:
+  # --- FASTAPI APP SERVICE ---
+  web:
+    build: .
+    container_name: fastapi_chat_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGIN=http://localhost:3000
+    volumes:
+      - .:/app  # Live-reloads code modifications instantly during local development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - chat_network
+
+  # --- POSTGRES DATABASE SERVICE ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret_password
+      - POSTGRES_DB=chat_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
+    networks:
+      - chat_network
+
+  # --- REDIS PUB/SUB SERVICE ---
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - chat_network
+
+# Structural storage volumes declaration
+volumes:
+  postgres_data:
+
+# Isolated virtual network routing definition
+networks:
+  chat_network:
+    driver: bridge
