@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 import os
 
@@ -6,11 +7,11 @@ from datetime import datetime
 from typing import Optional
 from sqlmodel import SQLModel, Field, create_engine
 
- 
 
-DATABASE_URL =  os.getenv("MESSAGE_DATABASE_URL")
+DATABASE_URL = os.getenv("MESSAGE_DATABASE_URL")
 # Create the async engine
 engine = create_engine(DATABASE_URL, echo=True)
+
 
 class MessageTable(SQLModel, table=True):
     __tablename__ = "messages"
@@ -19,6 +20,7 @@ class MessageTable(SQLModel, table=True):
     sender_name: str = Field(nullable=False)
     text: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+
 
 def init_db():
     SQLModel.metadata.create_all(engine)
