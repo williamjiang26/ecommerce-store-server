@@ -18,10 +18,10 @@ def get_employees():
         db_employee = session.exec(statement).all()
         return db_employee
 
-
 # post employee - create new user
 def post_employee(
-    name: str, 
+    name: str,
+
     cognitoId: str, 
     userRole: str, 
     storeId: Optional[int] = None, 
@@ -29,19 +29,19 @@ def post_employee(
     phoneNumber: str = ""
 ) -> EmployeeTable:
     with Session(engine) as session:
-        # Create a new row instance mapping frontend payload names to DB columns
         new_row = EmployeeTable(
             name=name,
+            
             cognitoId=cognitoId,
             role=userRole.lower(),  # DB column name is 'role'
             storeId=storeId,        # DB column name is 'storeId'
             email=email,
             phoneNumber=phoneNumber
         )
-        
         session.add(new_row)
         session.commit()
         session.refresh(new_row)  # Populates the auto-increment ID from PostgreSQL
+        
         return new_row
 # update employee
 def update_employee(id, name):
@@ -86,28 +86,28 @@ api_router = APIRouter(prefix="/api", tags=["employee"])
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-@api_router.post("/manager") 
-async def create_manager_account(request: Request):
+@api_router.post("/{role}")
+async def create_employee_account(role: str, request: Request):
     body = await request.json()
     print(body)
-    # return post_employee(
-    #     name=payload.name,
-    #     cognitoId=payload.cognitoId, # Captures the user.userId sent in the body
-    #     userRole="manager"
-    # )
+    return {"status": "success", "role_processed": role}
 
-@api_router.post("/sales")
-def create_sales_account(payload: Employee):
-    return post_employee(
-        name=payload.name,
-        cognitoId=payload.cognitoId,
-        userRole="sales",
-        storeId=payload.storeId
-    ) 
 
 @api_router.on_event("startup")
 def on_startup():
     create_db_and_tables()
+@api_router.get("/app/stores")
+def get_stores():
+    return {"stores":[
+  {
+    "id": 1,
+    "address": "946 3rd Ave"
+  },
+  {
+    "id": 2,
+    "address": "90-15 Queens Blvd"
+  }
+]}
 
 
 @api_router.get("/check")

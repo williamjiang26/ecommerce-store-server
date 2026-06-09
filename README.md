@@ -17,3 +17,4 @@ chat-service
 product-service  
 order-service   
 customer-service
+employee-service
