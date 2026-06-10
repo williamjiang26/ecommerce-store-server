@@ -3,6 +3,8 @@ from sqlmodel import SQLModel, Session, select, delete
 from models import EmployeeTable, engine, Employee
 
 from typing import Optional
+
+
 # functions
 # get employee
 def get_employee(cognitoId: str):
@@ -18,31 +20,32 @@ def get_employees():
         db_employee = session.exec(statement).all()
         return db_employee
 
+
 # post employee - create new user
 def post_employee(
     name: str,
-
-    cognitoId: str, 
-    userRole: str, 
-    storeId: Optional[int] = None, 
-    email: str = "", 
-    phoneNumber: str = ""
+    cognitoId: str,
+    userRole: str,
+    storeId: Optional[int] = None,
+    email: str = "",
+    phoneNumber: str = "",
 ) -> EmployeeTable:
     with Session(engine) as session:
         new_row = EmployeeTable(
             name=name,
-            
             cognitoId=cognitoId,
             role=userRole.lower(),  # DB column name is 'role'
-            storeId=storeId,        # DB column name is 'storeId'
+            storeId=storeId,  # DB column name is 'storeId'
             email=email,
-            phoneNumber=phoneNumber
+            phoneNumber=phoneNumber,
         )
         session.add(new_row)
         session.commit()
         session.refresh(new_row)  # Populates the auto-increment ID from PostgreSQL
-        
+
         return new_row
+
+
 # update employee
 def update_employee(id, name):
     with Session(engine) as session:
@@ -86,6 +89,7 @@ api_router = APIRouter(prefix="/api", tags=["employee"])
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
+
 @api_router.post("/{role}")
 async def create_employee_account(role: str, request: Request):
     body = await request.json()
@@ -96,18 +100,16 @@ async def create_employee_account(role: str, request: Request):
 @api_router.on_event("startup")
 def on_startup():
     create_db_and_tables()
+
+
 @api_router.get("/app/stores")
 def get_stores():
-    return {"stores":[
-  {
-    "id": 1,
-    "address": "946 3rd Ave"
-  },
-  {
-    "id": 2,
-    "address": "90-15 Queens Blvd"
-  }
-]}
+    return {
+        "stores": [
+            {"id": 1, "address": "946 3rd Ave"},
+            {"id": 2, "address": "90-15 Queens Blvd"},
+        ]
+    }
 
 
 @api_router.get("/check")

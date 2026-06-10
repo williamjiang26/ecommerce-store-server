@@ -25,9 +25,9 @@ def resolver_employee(cognitoId: str) -> Optional[Employee]:
             storeId=c.storeId,
             email=c.email,
             phoneNumber=c.phoneNumber,
-            img=c.img
+            img=c.img,
         )
-        
+
     # 3. Explicitly return None if they don't exist in your DB yet (triggers your frontend 404 block)
     return None
 
@@ -37,14 +37,22 @@ def resolver_employees() -> List[Employee]:
     return [Employee(**c) for c in updated_employees]
 
 
-def resolver_post_employee(id: int, name: str,cognitoId: str, userRole: str, storeId: Optional[int] = None,email: str = "",phoneNumber: str = "") -> List[Employee]:
+def resolver_post_employee(
+    id: int,
+    name: str,
+    cognitoId: str,
+    userRole: str,
+    storeId: Optional[int] = None,
+    email: str = "",
+    phoneNumber: str = "",
+) -> List[Employee]:
     new_employee = post_employee(name, cognitoId, userRole, storeId)
     return Employee(
-        id=new_employee.id, 
+        id=new_employee.id,
         name=new_employee.name,
         cognitoId=new_employee.cognitoId,
-        userRole=new_employee.role, 
-        storeId=new_employee.storeId
+        userRole=new_employee.role,
+        storeId=new_employee.storeId,
     )
 
 

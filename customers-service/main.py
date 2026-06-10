@@ -4,7 +4,7 @@ from strawberry.fastapi import GraphQLRouter
 
 from schema import schema
 from routes import api_router
- 
+
 
 app = FastAPI(title="customers microservice")
 app.add_middleware(
@@ -17,4 +17,3 @@ app.add_middleware(
 
 app.include_router(GraphQLRouter(schema), prefix="/graphql")
 app.include_router(api_router)
- 

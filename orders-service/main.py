@@ -16,4 +16,3 @@ app.add_middleware(
 
 app.include_router(GraphQLRouter(schema), prefix="/graphql")
 app.include_router(api_router)
- 

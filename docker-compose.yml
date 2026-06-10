@@ -66,6 +66,108 @@ services:
       orders_db:
         condition: service_healthy
 
+ # --- Chats Service ---
+  chats_db:
+    image: postgres:15-alpine
+    container_name: postgres_chat_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: messages
+    ports:
+      - "5437:5432"
+    volumes:
+      - chats_db_data:/var/lib/postgresql/data
+    healthcheck: # Tells Docker when the DB is genuinely awake
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d messages"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chats-service:
+    build: ./chats-service
+    container_name: app_chats
+    restart: always
+    ports:
+      - "8003:8000"
+    environment:
+      MESSAGE_DATABASE_URL: ${MESSAGE_DATABASE_URL}
+    volumes:
+      - ./chats-service:/app
+    depends_on:
+      chats_db:
+        condition: service_healthy
+
+ # --- Customers Service ---
+  customers_db:
+    image: postgres:15-alpine
+    container_name: postgres_customer_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: customer
+    ports:
+      - "5438:5432"
+    volumes:
+      - customers_db_data:/var/lib/postgresql/data
+    healthcheck: # Tells Docker when the DB is genuinely awake
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d customer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  customers-service:
+    build: ./customers-service
+    container_name: app_customers
+    restart: always
+    ports:
+      - "8005:8000"
+    environment:
+      CUSTOMER_DATABASE_URL: ${CUSTOMER_DATABASE_URL}
+    volumes:
+      - ./customers-service:/app
+    depends_on:
+      customers_db:
+        condition: service_healthy
+
+
+ # --- Employees Service ---
+  employees_db:
+    image: postgres:15-alpine
+    container_name: postgres_employee_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: employee
+    ports:
+      - "5439:5432"
+    volumes:
+      - employees_db_data:/var/lib/postgresql/data
+    healthcheck: # Tells Docker when the DB is genuinely awake
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d employee"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  employees-service:
+    build: ./employees-service
+    container_name: app_employees
+    restart: always
+    ports:
+      - "8006:8000"
+    environment:
+      EMPLOYEE_DATABASE_URL: ${EMPLOYEE_DATABASE_URL}
+    volumes:
+      - ./employees-service:/app
+    depends_on:
+      employees_db:
+        condition: service_healthy
 volumes:
   products_db_data:
   orders_db_data:
+  chats_db_data:
+  customers_db_data:
+  employees_db_data:

@@ -7,9 +7,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Expose the internal container port for Products (REST)
+# Expose the internal container port for orders (REST)
 EXPOSE 8000
 
 
-# Run the product server on port 8000 inside the container
+# Run the orders server on port 8000 inside the container
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
