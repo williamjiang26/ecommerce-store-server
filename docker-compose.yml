@@ -32,22 +32,21 @@ services:
       - ./products-service:/app
     depends_on:
       db:
-        condition: service_healthy # Forces app to wait until DB is completely ready
-
+        condition: service_healthy
   # --- Orders Service ---
-  order_db:
+  orders_db:
     image: postgres:15-alpine
     container_name: postgres_order_db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: order
     ports:
       - "5436:5432"
     volumes:
       - orders_db_data:/var/lib/postgresql/data
-    healthcheck:
+    healthcheck: # Tells Docker when the DB is genuinely awake
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d order"]
       interval: 5s
       timeout: 5s
@@ -56,6 +55,7 @@ services:
   orders-service:
     build: ./orders-service
     container_name: app_orders
+    restart: always
     ports:
       - "8002:8000"
     environment:
@@ -63,7 +63,7 @@ services:
     volumes:
       - ./orders-service:/app
     depends_on:
-      order_db:
+      orders_db:
         condition: service_healthy
 
 volumes:
