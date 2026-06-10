@@ -1,217 +1,71 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # --- FASTAPI APP SERVICE ---
-  web:
-    build: .
-    container_name: fastapi_chat_app
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
-      - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_ORIGIN=http://localhost:3000
-    volumes:
-      - .:/app  # Live-reloads code modifications instantly during local development
-    depends_on:
-      - db
-      - redis
-    networks:
-      - chat_network
-
-  # --- POSTGRES DATABASE SERVICE ---
+  # --- Products Service ---
   db:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgres_product_db
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret_password
-      - POSTGRES_DB=chat_db
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: product
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
-    networks:
-      - chat_network
+      - products_db_data:/var/lib/postgresql/data
+    healthcheck: # Tells Docker when the DB is genuinely awake
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d product"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # --- REDIS PUB/SUB SERVICE ---
-  redis:
-    image: redis:7-alpine
-    container_name: redis_cache
+  products-service:
+    build: ./products-service
+    container_name: app_products
     restart: always
     ports:
-      - "6379:6379"
-    networks:
-      - chat_network
-
-# Structural storage volumes declaration
-volumes:
-  postgres_data:
-
-# Isolated virtual network routing definition
-networks:
-  chat_network:
-    driver: bridgeversion: '3.8'
-
-services:
-  # --- FASTAPI APP SERVICE ---
-  web:
-    build: .
-    container_name: fastapi_chat_app
-    ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
-      - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_ORIGIN=http://localhost:3000
+      PRODUCT_DATABASE_URL: ${PRODUCT_DATABASE_URL}
     volumes:
-      - .:/app  # Live-reloads code modifications instantly during local development
+      - ./products-service:/app
     depends_on:
-      - db
-      - redis
-    networks:
-      - chat_network
+      db:
+        condition: service_healthy # Forces app to wait until DB is completely ready
 
-  # --- POSTGRES DATABASE SERVICE ---
-  db:
+  # --- Orders Service ---
+  order_db:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgres_order_db
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret_password
-      - POSTGRES_DB=chat_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: order
     ports:
-      - "5432:5432"
+      - "5436:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
-    networks:
-      - chat_network
+      - orders_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d order"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # --- REDIS PUB/SUB SERVICE ---
-  redis:
-    image: redis:7-alpine
-    container_name: redis_cache
-    restart: always
+  orders-service:
+    build: ./orders-service
+    container_name: app_orders
     ports:
-      - "6379:6379"
-    networks:
-      - chat_network
-
-# Structural storage volumes declaration
-volumes:
-  postgres_data:
-
-# Isolated virtual network routing definition
-networks:
-  chat_network:
-    driver: bridgeversion: '3.8'
-
-services:
-  # --- FASTAPI APP SERVICE ---
-  web:
-    build: .
-    container_name: fastapi_chat_app
-    ports:
-      - "8000:8000"
+      - "8002:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
-      - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_ORIGIN=http://localhost:3000
+      ORDER_DATABASE_URL: ${ORDER_DATABASE_URL}
     volumes:
-      - .:/app  # Live-reloads code modifications instantly during local development
+      - ./orders-service:/app
     depends_on:
-      - db
-      - redis
-    networks:
-      - chat_network
+      order_db:
+        condition: service_healthy
 
-  # --- POSTGRES DATABASE SERVICE ---
-  db:
-    image: postgres:15-alpine
-    container_name: postgres_db
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret_password
-      - POSTGRES_DB=chat_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
-    networks:
-      - chat_network
-
-  # --- REDIS PUB/SUB SERVICE ---
-  redis:
-    image: redis:7-alpine
-    container_name: redis_cache
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - chat_network
-
-# Structural storage volumes declaration
 volumes:
-  postgres_data:
-
-# Isolated virtual network routing definition
-networks:
-  chat_network:
-    driver: bridgeversion: '3.8'
-
-services:
-  # --- FASTAPI APP SERVICE ---
-  web:
-    build: .
-    container_name: fastapi_chat_app
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:secret_password@db:5432/chat_db
-      - REDIS_URL=redis://redis:6379/0
-      - ALLOWED_ORIGIN=http://localhost:3000
-    volumes:
-      - .:/app  # Live-reloads code modifications instantly during local development
-    depends_on:
-      - db
-      - redis
-    networks:
-      - chat_network
-
-  # --- POSTGRES DATABASE SERVICE ---
-  db:
-    image: postgres:15-alpine
-    container_name: postgres_db
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret_password
-      - POSTGRES_DB=chat_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data  # Persists your data even when containers stop
-    networks:
-      - chat_network
-
-  # --- REDIS PUB/SUB SERVICE ---
-  redis:
-    image: redis:7-alpine
-    container_name: redis_cache
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - chat_network
-
-# Structural storage volumes declaration
-volumes:
-  postgres_data:
-
-# Isolated virtual network routing definition
-networks:
-  chat_network:
-    driver: bridge
+  products_db_data:
+  orders_db_data:
