@@ -77,15 +77,33 @@ async def listen_messages(room_id: str) -> AsyncGenerator[Message, None]:
     pubsub_channel = f"channel:room:{room_id}"
     await pubsub.subscribe(pubsub_channel)
 
+    HEARTBEAT_INTERVAL = 30.0  # Seconds between pings
+    idle_time = 0.0
     try:
         while True:
             # listen() blocks asynchronously until a new message is published to the channel
-            async for message in pubsub.listen():
-                # Ignore the initial confirmation subscription message
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            # Ignore the initial confirmation subscription message
+            if message:
+                idle_time = 0.0
                 if message["type"] == "message":
                     data = json.loads(message["data"])
-                    
                     yield data
+            if idle_time >= HEARTBEAT_INTERVAL:
+                try:
+                    # Actively ping the Redis server to verify connection health
+                    await pubsub.ping()
+                    
+                    # OPTIONAL: Yield a heartbeat token to keep the GraphQL/WebSocket connection alive too
+                    # yield {"id": "heartbeat", "sender_type": "system", "text": "ping"}
+                except Exception:
+                    # If ping fails, the connection is dead; break out to trigger the reconnect
+                    print(f"Redis Pub/Sub connection lost for room {room_id}")
+                    break
+                idle_time = 0.0
+
+            # Yield control back to the event loop for a microsecond
+            await asyncio.sleep(0.01)
     except asyncio.CancelledError:
         # Handles client disconnect cleanly
         pass
@@ -101,17 +119,32 @@ async def listen_all_messages():
     # The '*' acts as a wildcard matching any string after channel:room:
     wildcard_pattern = "channel:room:*"
     await pubsub.psubscribe(wildcard_pattern)
-
+    HEARTBEAT_INTERVAL = 30.0  # Seconds between pings
+    idle_time = 0.0
     try:
         while True:
-            message = await pubsub.get_message(
-                ignore_subscribe_messages=True, 
-                timeout=None
-            )
-            if message and message["type"] == "pmessage":
-                data = json.loads(message["data"])
-                yield data
-                
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            if message:
+                idle_time = 0.0
+                if message["type"] == "pmessage":
+                    data = json.loads(message["data"])
+                    yield data
+            else:
+                idle_time += 1.0
+                    # 
+            if idle_time >= HEARTBEAT_INTERVAL:
+                try:
+                    # Actively ping the Redis server to verify connection health
+                    await pubsub.ping()
+                    
+                    # OPTIONAL: Yield a heartbeat token to keep the GraphQL/WebSocket connection alive too
+                    # yield {"id": "heartbeat", "sender_type": "system", "text": "ping"}
+                except Exception:
+                    break
+
+                idle_time = 0.0
+
+            # Yield control back to the event loop for a microsecond
             await asyncio.sleep(0.01)
     except asyncio.CancelledError:
         pass
