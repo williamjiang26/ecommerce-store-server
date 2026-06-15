@@ -1,23 +1,12 @@
 from fastapi import APIRouter
-from sqlmodel import SQLModel, Field, create_engine, Session, select, delete
+from sqlmodel import SQLModel, create_engine, Session, select, delete
+from models import ProductTable
+
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 DATABASE_URL = os.getenv("PRODUCT_DATABASE_URL")
-# Create the async engine
 engine = create_engine(DATABASE_URL, echo=True)
-
-
-# SQLModel DB Table Definition (Acts as both SQLAlchemy table and Pydantic validation)
-class ProductTable(SQLModel, table=True):
-    __tablename__ = "products"
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False)
-
-
+ 
 # functions
 # get product id
 def get_product(id: int):
@@ -33,21 +22,15 @@ def get_products():
         db_products = session.exec(statement).all()
         return db_products
 
-
 # post product
-def post_product(id: int, name: str):
+def post_product(name: str, img:str, stock:bool, price:int):
     with Session(engine) as session:
-        # 2. Create an instance of your database table row model
-        new_row = ProductTable(id=id, name=name)
-
-        # 3. Add and commit the new record to PostgreSQL
+        new_row = ProductTable(name=name, img=img, stock=stock, price=price)
         session.add(new_row)
         session.commit()
-
-        # 4. Fetch the entire updated list of rows from the database to return
+        session.refresh(new_row)
         statement = select(ProductTable)
         db_products = session.exec(statement).all()
-
         return db_products
 
 

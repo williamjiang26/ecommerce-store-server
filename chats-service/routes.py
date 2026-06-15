@@ -3,71 +3,124 @@ import asyncio
 from sqlmodel import Session, select
 
 from models import Message, MessageTable, engine
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request,BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pinecone import Pinecone
 from openai import AsyncOpenAI
 from typing import AsyncGenerator, Set, List, Dict
 import uuid
-# Global memory set to track active subscription queues
-ACTIVE_LISTENERS: Set[asyncio.Queue] = set()
+import redis.asyncio as aioredis
+import json
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = aioredis.from_url(REDIS_URL, decode_responses=True)
+# Define a constant channel name for the chat room
+CHAT_CHANNEL = "chat:global:stream"
+CHAT_STREAM_KEY = "chat:global:messages"
 
 
 def message_history(limit: int = 50) -> list[MessageTable]:
-    """Fetches recent messages from the database."""
+    """
+    Fetches recent messages from the database.
+    Kept synchronous as per your original implementation.
+    """
     with Session(engine) as session:
         statement = (
             select(MessageTable)
             .order_by(MessageTable.created_at.desc())
             .limit(limit)
         )
-        # Reverse to return them in chronological order
         return list(reversed(session.exec(statement).all()))
 
 
-def send_message(sender_type: str, sender_name: str, text: str) -> MessageTable:
-    """Saves a message to the database and broadcasts it to active listeners."""
+def _save_to_db_background(sender_type: str, sender_name: str, text: str, room_id: str):
+    """Background worker task to persist data to SQL database asynchronously."""
     with Session(engine) as session:
         db_msg = MessageTable(
-            sender_type=sender_type, sender_name=sender_name, text=text
+            sender_type=sender_type, sender_name=sender_name, text=text,
+            room_id=room_id
         )
         session.add(db_msg)
         session.commit()
-        session.refresh(db_msg)
 
+
+async def send_message(sender_type: str, sender_name: str, text: str, room_id: str, background_tasks: BackgroundTasks) -> dict:
+    """
+    Saves a message to Redis Streams, broadcasts via Pub/Sub, 
+    and offloads the SQL write to a background thread.
+    """
     payload = {
-        "id": db_msg.id,
-        "sender_type": db_msg.sender_type,
-        "sender_name": db_msg.sender_name,
-        "text": db_msg.text,
-    }
-    
-    # Broadcast to all active GraphQL subscription streams
-    for queue in ACTIVE_LISTENERS:
-        queue.put_nowait(payload)
+        "sender_type": sender_type,
+        "sender_name": sender_name,
+        "text": text,  
+        "room_id": room_id
+    }# 1. Target the distinct client's stream key
+    stream_key = f"chat:room:{room_id}"
+    message_id = await redis_client.xadd(stream_key, {"data": json.dumps(payload)}, id="*")
+    await redis_client.xtrim(stream_key, maxlen=500, approximate=True)
+    payload["id"] = message_id
 
-    return db_msg
+    # 2. Publish to the distinct client's channel
+    pubsub_channel = f"channel:room:{room_id}"
+    await redis_client.publish(pubsub_channel, json.dumps(payload))
+
+    # 3. Offload the slow relational DB write to a background task so the API remains lightning fast
+    background_tasks.add_task(_save_to_db_background, sender_type, sender_name, text, room_id)
+
+    return payload
 
 
-async def listen_messages() -> AsyncGenerator[Message, None]:
-    """Yields new messages to connected GraphQL subscription clients."""
-    queue = asyncio.Queue()
-    ACTIVE_LISTENERS.add(queue)
+async def listen_messages(room_id: str) -> AsyncGenerator[Message, None]:
+    """Yields new messages to connected clients via Redis Pub/Sub across any server instance."""
+    # Create a unique pubsub context for this connection
+    pubsub = redis_client.pubsub()
+    pubsub_channel = f"channel:room:{room_id}"
+    await pubsub.subscribe(pubsub_channel)
 
     try:
         while True:
-            data = await queue.get()
-            yield Message(
-                id=data["id"],
-                sender_type=data["sender_type"],
-                sender_name=data["sender_name"],
-                text=data["text"],
-            )
+            # listen() blocks asynchronously until a new message is published to the channel
+            async for message in pubsub.listen():
+                # Ignore the initial confirmation subscription message
+                if message["type"] == "message":
+                    data = json.loads(message["data"])
+                    
+                    yield data
+    except asyncio.CancelledError:
+        # Handles client disconnect cleanly
+        pass
     finally:
-        ACTIVE_LISTENERS.discard(queue)
+        # Alwa
+        # ys unsubscribe and close the pubsub connection to prevent memory leaks
+        await pubsub.unsubscribe(pubsub_channel)        
+        await pubsub.close()
+
+async def listen_all_messages():
+    """Listens to ALL chat rooms simultaneously using pattern matching."""
+    pubsub = redis_client.pubsub()
+    # The '*' acts as a wildcard matching any string after channel:room:
+    wildcard_pattern = "channel:room:*"
+    await pubsub.psubscribe(wildcard_pattern)
+
+    try:
+        while True:
+            message = await pubsub.get_message(
+                ignore_subscribe_messages=True, 
+                timeout=None
+            )
+            if message and message["type"] == "pmessage":
+                data = json.loads(message["data"])
+                yield data
+                
+            await asyncio.sleep(0.01)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        # Clean up the pattern subscription
+        await pubsub.punsubscribe(wildcard_pattern)
+        await pubsub.close()
 
 api_router = APIRouter(prefix="/api", tags=["Chats"])
-
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("cxsupport")
 
@@ -89,23 +142,35 @@ openrouter_client = AsyncOpenAI(
 )
 
 @api_router.post("/chat")
-async def chat_endpoint(request: Request):
+async def chat_endpoint(request: Request, background_tasks: BackgroundTasks):
 
     # 1. Parse the entire incoming chat history array
-    data: List[Dict[str, str]] = await request.json()
-    
-    # 2. Get the last user message text
-    last_message = data[-1]
-    text = last_message.get("content", "")
+    payload = await request.json()
+    print(payload)
+    room_id = payload.get('roomId')
+    chat_history: List[Dict[str, str]] = payload.get("messages", [])
+    if not room_id or not chat_history:
+        return {"error", "Missing roomId or messages history"}, 400
 
+        # 
+    last_message = chat_history[-1]
+    text = last_message.get("content", "")     
     user_payload = {
-        "id": str(uuid.uuid4()),  # Unique ID for the user's message block
         "sender_type": "user",
         "sender_name": "user",
         "text": text,
+        "room_id": room_id
     }
-    for queue in ACTIVE_LISTENERS:
-        queue.put_nowait(user_payload)
+    # message to room
+    stream_key = f"chat:room:{room_id}"
+    message_id = await redis_client.xadd(stream_key, {"data": json.dumps(user_payload)}, id="*")
+    await redis_client.xtrim(stream_key, maxlen=500, approximate=True)
+    user_payload["id"] = message_id
+
+    # 2. Publish to the distinct client's channel
+    pubsub_channel = f"channel:room:{room_id}"
+    await redis_client.publish(pubsub_channel, json.dumps(user_payload))
+    background_tasks.add_task(_save_to_db_background, "user", "user", text, room_id)
     # 3. Generate the vector embedding using OpenRouter
     embedding_response = await openrouter_client.embeddings.create(
         model="nvidia/llama-nemotron-embed-vl-1b-v2:free",
@@ -136,13 +201,12 @@ async def chat_endpoint(request: Request):
         Order Total: {metadata.get('totalPrice')}
         \n\n
         """
-    print(f"🚀 ~ POST ~ resultString: {result_string}")
-    
+
     # 6. Append the vector context to the last user message
     last_message_content = text + result_string
     
     # 7. Reconstruct the message payloads for the completion model
-    chat_history_without_last = data[:-1]
+    chat_history_without_last = chat_history[:-1]
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT}
     ]
@@ -157,27 +221,33 @@ async def chat_endpoint(request: Request):
         messages=messages,
         stream=True
     )
-    agent_message_id = str(uuid.uuid4())
+
     # 9. Asynchronous generator to stream tokens to the client
+    assistant_message_id = f"assistant:{uuid.uuid4()}"
     async def stream_generator():
+        full_assistant_text = ""
         try:
             async for chunk in completion:
                 # Check for content inside choices safely
                 if chunk.choices and chunk.choices[0].delta.content:
                     content_chunk = chunk.choices[0].delta.content
+                    full_assistant_text += content_chunk
                     # Create a payload matching what your subscription expects
-                    payload = {
-                        "id": agent_message_id,
+                    agent_payload = {
+                        "id": assistant_message_id,
                         "sender_type": "assistant",
                         "sender_name": "assistant",
                         "text": content_chunk,
+                        "room_id": room_id
                     }
-                    for queue in ACTIVE_LISTENERS:
-                        queue.put_nowait(payload)
-
+                    # put the agent's message with the room to be streamed by the sales rep
+                    await redis_client.xadd(stream_key, {"data": json.dumps(agent_payload)}, id="*")
+                    await redis_client.xtrim(stream_key, maxlen=500, approximate=True)
+                    await redis_client.publish(pubsub_channel, json.dumps(agent_payload))
                     # Yield to the immediate HTTP client (the chat box)
                     yield content_chunk
 
+            background_tasks.add_task(_save_to_db_background, "assistant", "assistant", result_string, room_id)
         except Exception as e:
             # Handle potential connection drops/errors
             print(f"Streaming Error: {e}")

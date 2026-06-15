@@ -1,4 +1,4 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI , BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
@@ -22,7 +22,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+async def get_graphql_context(background_tasks: BackgroundTasks):
+    return {
+        "background_tasks": background_tasks,
+    }
 
+
+# 2. Pass the context getter into the GraphQLRouter.
+# This router automatically handles standard HTTP POST requests (for Mutations/Queries)
+graphql_router = GraphQLRouter(schema, context_getter=get_graphql_context)
  
-app.include_router(GraphQLRouter(schema), prefix="/graphql")
+app.include_router(graphql_router, prefix="/graphql")
 app.include_router(api_router)

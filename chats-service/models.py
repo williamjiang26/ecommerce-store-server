@@ -28,7 +28,7 @@ class Message:
     sender_type: str
     sender_name: str
     text: str
-
+    room_id: str
 
 def init_db():
     SQLModel.metadata.create_all(engine)

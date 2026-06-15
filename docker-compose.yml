@@ -93,12 +93,14 @@ services:
       - "8003:8000"
     environment:
       MESSAGE_DATABASE_URL: ${MESSAGE_DATABASE_URL}
+      REDIS_URL: redis://redis-chat:6379/0
     volumes:
       - ./chats-service:/app
     depends_on:
       chats_db:
         condition: service_healthy
-
+      redis-chat:
+        condition: service_healthy
  # --- Customers Service ---
   customers_db:
     image: postgres:15-alpine
@@ -165,9 +167,26 @@ services:
     depends_on:
       employees_db:
         condition: service_healthy
+
+
+  redis-chat:
+    image: redis:alpine
+    container_name: chat_redis_cache
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
 volumes:
   products_db_data:
   orders_db_data:
   chats_db_data:
   customers_db_data:
   employees_db_data:
+
+  redis_data:
