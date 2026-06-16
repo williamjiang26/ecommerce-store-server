@@ -3,6 +3,7 @@ version: "3.8"
 services:
   # --- Products Service ---
   db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_product_db
     restart: always
@@ -21,6 +22,7 @@ services:
       retries: 5
 
   products-service:
+    platform: linux/amd64
     build: ./products-service
     container_name: app_products
     restart: always
@@ -35,6 +37,7 @@ services:
         condition: service_healthy
   # --- Orders Service ---
   orders_db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_order_db
     restart: always
@@ -53,6 +56,7 @@ services:
       retries: 5
 
   orders-service:
+    platform: linux/amd64
     build: ./orders-service
     container_name: app_orders
     restart: always
@@ -66,8 +70,9 @@ services:
       orders_db:
         condition: service_healthy
 
- # --- Chats Service ---
+  # --- Chats Service ---
   chats_db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_chat_db
     restart: always
@@ -86,7 +91,8 @@ services:
       retries: 5
 
   chats-service:
-    build: ./chats-service
+    platform: linux/amd64
+     build: ./chats-service
     container_name: app_chats
     restart: always
     ports:
@@ -101,8 +107,9 @@ services:
         condition: service_healthy
       redis-chat:
         condition: service_healthy
- # --- Customers Service ---
+  # --- Customers Service ---
   customers_db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_customer_db
     restart: always
@@ -121,6 +128,7 @@ services:
       retries: 5
 
   customers-service:
+    platform: linux/amd64
     build: ./customers-service
     container_name: app_customers
     restart: always
@@ -134,9 +142,9 @@ services:
       customers_db:
         condition: service_healthy
 
-
- # --- Employees Service ---
+  # --- Employees Service ---
   employees_db:
+    platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_employee_db
     restart: always
@@ -155,6 +163,7 @@ services:
       retries: 5
 
   employees-service:
+    platform: linux/amd64
     build: ./employees-service
     container_name: app_employees
     restart: always
@@ -168,8 +177,8 @@ services:
       employees_db:
         condition: service_healthy
 
-
   redis-chat:
+    platform: linux/amd64
     image: redis:alpine
     container_name: chat_redis_cache
     ports:

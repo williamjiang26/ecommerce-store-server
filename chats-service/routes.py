@@ -54,7 +54,8 @@ async def send_message(sender_type: str, sender_name: str, text: str, room_id: s
         "sender_name": sender_name,
         "text": text,  
         "room_id": room_id
-    }# 1. Target the distinct client's stream key
+    }
+    # 1. Target the distinct client's stream key
     stream_key = f"chat:room:{room_id}"
     message_id = await redis_client.xadd(stream_key, {"data": json.dumps(payload)}, id="*")
     await redis_client.xtrim(stream_key, maxlen=500, approximate=True)
