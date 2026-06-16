@@ -1,9 +1,9 @@
 services:
   # --- Products Service ---
-  - type: web # Change to pserv if this is an internal-only API
+  - type: web
     name: products-service
-    env: docker
-    dockercontext: ./products-service
+    runtime: docker
+    dockerContext: ./products-service
     dockerfilePath: ./products-service/Dockerfile
     plan: free
     envVars:
@@ -15,8 +15,8 @@ services:
   # --- Orders Service ---
   - type: web
     name: orders-service
-    env: docker
-    dockercontext: ./orders-service
+    runtime: docker
+    dockerContext: ./orders-service
     dockerfilePath: ./orders-service/Dockerfile
     plan: free
     envVars:
@@ -28,8 +28,8 @@ services:
   # --- Chats Service ---
   - type: web
     name: chats-service
-    env: docker
-    dockercontext: ./chats-service
+    runtime: docker
+    dockerContext: ./chats-service
     dockerfilePath: ./chats-service/Dockerfile
     plan: free
     envVars:
@@ -46,8 +46,8 @@ services:
   # --- Customers Service ---
   - type: web
     name: customers-service
-    env: docker
-    dockercontext: ./customers-service
+    runtime: docker
+    dockerContext: ./customers-service
     dockerfilePath: ./customers-service/Dockerfile
     plan: free
     envVars:
@@ -59,8 +59,8 @@ services:
   # --- Employees Service ---
   - type: web
     name: employees-service
-    env: docker
-    dockercontext: ./employees-service
+    runtime: docker
+    dockerContext: ./employees-service
     dockerfilePath: ./employees-service/Dockerfile
     plan: free
     envVars:
@@ -73,7 +73,7 @@ services:
   - type: redis
     name: redis-chat
     plan: free
-    ipAllowList: [] # Blocks external internet traffic; only your services can connect
+    ipAllowList: []
 
 # --- Managed PostgreSQL Databases ---
 databases:
