@@ -1,11 +1,11 @@
 services:
   # --- Products Service ---
-  - type: web
+  - type: web # Change to pserv if this is an internal-only API
     name: products-service
     env: docker
     dockercontext: ./products-service
     dockerfilePath: ./products-service/Dockerfile
-    plan: free # or starter
+    plan: free
     envVars:
       - key: PRODUCT_DATABASE_URL
         fromDatabase:
@@ -43,17 +43,47 @@ services:
           name: redis-chat
           property: connectionString
 
-  # --- Managed Redis ---
+  # --- Customers Service ---
+  - type: web
+    name: customers-service
+    env: docker
+    dockercontext: ./customers-service
+    dockerfilePath: ./customers-service/Dockerfile
+    plan: free
+    envVars:
+      - key: CUSTOMER_DATABASE_URL
+        fromDatabase:
+          name: customer-db
+          property: connectionString
+
+  # --- Employees Service ---
+  - type: web
+    name: employees-service
+    env: docker
+    dockercontext: ./employees-service
+    dockerfilePath: ./employees-service/Dockerfile
+    plan: free
+    envVars:
+      - key: EMPLOYEE_DATABASE_URL
+        fromDatabase:
+          name: employee-db
+          property: connectionString
+
+  # --- Managed Redis Cache ---
   - type: redis
     name: redis-chat
     plan: free
-    ipAllowList: [] # Secures it so only your services can talk to it
+    ipAllowList: [] # Blocks external internet traffic; only your services can connect
 
-# --- Managed Databases ---
+# --- Managed PostgreSQL Databases ---
 databases:
   - name: product-db
     plan: free
   - name: order-db
     plan: free
   - name: chat-db
+    plan: free
+  - name: customer-db
+    plan: free
+  - name: employee-db
     plan: free
