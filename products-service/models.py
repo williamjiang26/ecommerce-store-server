@@ -11,16 +11,18 @@ load_dotenv()
 class ProductTable(SQLModel, table=True):
     __tablename__ = "products"
     id: Optional[int] = Field(default=None, primary_key=True)
+
     name: str = Field(nullable=False)
     stock: bool
     price: int
     img: str
-
+    priceId: Optional[str] = Field(default=None)
 @strawberry.type
 class Product:
     id: int
     name: str
-    stock: bool
 
+    stock: bool
     price: int
+    priceId: Optional[str] = None
     img: Optional[str] = None

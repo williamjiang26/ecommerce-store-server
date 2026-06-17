@@ -22,22 +22,22 @@ def resolver_product(id: int) -> Optional[Product]:
 
 def resolver_products() -> List[Product]:
     updated_products = get_products()
-    return [Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price) for p in updated_products]
+    return [Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId) for p in updated_products]
 
 
 def resolver_post_product(name: str, img:str, stock:bool, price:int) -> List[Product]:
     updated_products = post_product(name, img, stock, price)
-    return [Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price) for p in updated_products]
+    return [Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId) for p in updated_products]
 
 
-def resolver_update_product(id: int, name: str, img:str, stock:bool, price:int) -> List[Product]:
-    updated_products = update_product(id, name, img, stock, price)
-    return [Product(id=p.id, name=p.name,img=p.img,stock=p.stock,price=p.price) for p in updated_products]
+def resolver_update_product(id: int, name: str, img:str, stock:bool, price:int, priceId:Optional[str] = None) -> List[Product]:
+    updated_products = update_product(id, name, img, stock, price, priceId)
+    return [Product(id=p.id, name=p.name,img=p.img,stock=p.stock,price=p.price, priceId=p.priceId) for p in updated_products]
 
 
 def resolver_delete_product(id: int) -> List[Product]:
     updated_products = delete_product(id)
-    return [Product(id=p.id, name=p.name,img=p.img,stock=p.stock,price=p.price) for p in updated_products]
+    return [Product(id=p.id, name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId) for p in updated_products]
 
 
 def resolver_delete_products() -> List[Product]:

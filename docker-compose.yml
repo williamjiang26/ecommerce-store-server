@@ -92,7 +92,7 @@ services:
 
   chats-service:
     platform: linux/amd64
-     build: ./chats-service
+    build: ./chats-service
     container_name: app_chats
     restart: always
     ports:

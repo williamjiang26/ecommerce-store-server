@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, create_engine, Session, select, delete
 from models import ProductTable
 
 import os
-
+from typing import List, Optional
 DATABASE_URL = os.getenv("PRODUCT_DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
  
@@ -35,13 +35,18 @@ def post_product(name: str, img:str, stock:bool, price:int):
 
 
 # update product id
-def update_product(id, name):
+def update_product(id:int, name: str, img:str, stock:bool, price:int, priceId:Optional[str] = None):
     with Session(engine) as session:
         update_product = session.get(ProductTable, id)
         if not update_product:
             return session.exec(select(ProductTable)).all()
-
         update_product.name = name
+        #
+        print(update_product)
+        update_product.img = img
+        update_product.stock = stock
+        update_product.price = price
+        update_product.priceId = priceId
         session.add(update_product)
         session.commit()
         statement = select(ProductTable)
@@ -72,25 +77,21 @@ def delete_all_products():
 
 # rest endpoints
 api_router = APIRouter(prefix="/api", tags=["Products"])
-
-
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
-
 
 @api_router.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
-
 @api_router.get("/product")
 def read_product():
     return get_product()
 
-
 @api_router.get("/products")
 def read_products():
     return get_products()
+
 
 
 @api_router.get("/check")

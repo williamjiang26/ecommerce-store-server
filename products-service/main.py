@@ -9,7 +9,7 @@ from routes import api_router
 app = FastAPI(title="product microservice")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://products-service-kknp.onrender.com", "http://localhost:3000", "*"],
+    allow_origins=["https://products-service-kknp.onrender.com", "http://localhost:3000", "http://localhost:8081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
