@@ -57,17 +57,17 @@ services:
   #         property: connectionString
 
   # --- Employees Service (Disabled) ---
-  # - type: web
-  #   name: employees-service
-  #   runtime: docker
-  #   dockerContext: ./employees-service
-  #   dockerfilePath: ./employees-service/Dockerfile
-  #   plan: free
-  #   envVars:
-  #     - key: EMPLOYEE_DATABASE_URL
-  #       fromDatabase:
-  #         name: employee-db
-  #         property: connectionString
+  - type: web
+    name: employees-service
+    runtime: docker
+    dockerContext: ./employees-service
+    dockerfilePath: ./employees-service/Dockerfile
+    plan: free
+    envVars:
+      - key: EMPLOYEE_DATABASE_URL
+        fromDatabase:
+          name: employee-db
+          property: connectionString
 
   # --- Essays Service ---
   - type: web
@@ -99,8 +99,8 @@ databases:
   # - name: customer-db
   #   plan: free
 
-  # - name: employee-db            
-  #   plan: free
+  - name: employee-db            
+    plan: free
 
   - name: chat-db
     plan: free
