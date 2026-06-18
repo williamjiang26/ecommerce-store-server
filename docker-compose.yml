@@ -154,7 +154,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: employee
     ports:
-      - "5439:5432"
+      - "5433:5432"
     volumes:
       - employees_db_data:/var/lib/postgresql/data
     healthcheck: # Tells Docker when the DB is genuinely awake
