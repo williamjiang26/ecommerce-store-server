@@ -12,7 +12,7 @@ services:
           name: product-db
           property: connectionString
 
-  # # --- Orders Service ---
+  # --- Orders Service (Disabled) ---
   # - type: web
   #   name: orders-service
   #   runtime: docker
@@ -25,7 +25,7 @@ services:
   #         name: order-db
   #         property: connectionString
 
-  # # --- Chats Service ---
+  # --- Chats Service ---
   - type: web
     name: chats-service
     runtime: docker
@@ -43,7 +43,7 @@ services:
           name: redis-chat
           property: connectionString
 
-  # # --- Customers Service ---
+  # --- Customers Service (Disabled) ---
   # - type: web
   #   name: customers-service
   #   runtime: docker
@@ -56,7 +56,7 @@ services:
   #         name: customer-db
   #         property: connectionString
 
-  # # --- Employees Service ---
+  # --- Employees Service (Disabled) ---
   # - type: web
   #   name: employees-service
   #   runtime: docker
@@ -66,7 +66,7 @@ services:
   #   envVars:
   #     - key: EMPLOYEE_DATABASE_URL
   #       fromDatabase:
-  #         name: employee-db       # Fixed: Points to renamed database
+  #         name: employee-db
   #         property: connectionString
 
   # --- Essays Service ---
@@ -87,17 +87,23 @@ services:
     name: redis-chat
     plan: free
     ipAllowList: []
+
 # --- Managed PostgreSQL Databases ---
 databases:
   - name: product-db
     plan: free
+
   # - name: order-db
   #   plan: free
-  - name: chat-db
-    plan: free
+
   # - name: customer-db
   #   plan: free
+
   # - name: employee-db            
   #   plan: free
+
+  - name: chat-db
+    plan: free
+
   - name: essay-db            
     plan: free
