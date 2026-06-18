@@ -17,7 +17,7 @@ def on_startup():
 # Security CORS Configuration Layer
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://chats-service-zcmo.onrender.com", "http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
