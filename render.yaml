@@ -12,81 +12,81 @@ services:
           name: product-db
           property: connectionString
 
-  # --- Orders Service ---
-  - type: web
-    name: orders-service
-    runtime: docker
-    dockerContext: ./orders-service
-    dockerfilePath: ./orders-service/Dockerfile
-    plan: free
-    envVars:
-      - key: ORDER_DATABASE_URL
-        fromDatabase:
-          name: order-db
-          property: connectionString
+  # # --- Orders Service ---
+  # - type: web
+  #   name: orders-service
+  #   runtime: docker
+  #   dockerContext: ./orders-service
+  #   dockerfilePath: ./orders-service/Dockerfile
+  #   plan: free
+  #   envVars:
+  #     - key: ORDER_DATABASE_URL
+  #       fromDatabase:
+  #         name: order-db
+  #         property: connectionString
 
-  # --- Chats Service ---
-  - type: web
-    name: chats-service
-    runtime: docker
-    dockerContext: ./chats-service
-    dockerfilePath: ./chats-service/Dockerfile
-    plan: free
-    envVars:
-      - key: MESSAGE_DATABASE_URL
-        fromDatabase:
-          name: chat-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: redis-chat
-          property: connectionString
+  # # --- Chats Service ---
+  # - type: web
+  #   name: chats-service
+  #   runtime: docker
+  #   dockerContext: ./chats-service
+  #   dockerfilePath: ./chats-service/Dockerfile
+  #   plan: free
+  #   envVars:
+  #     - key: MESSAGE_DATABASE_URL
+  #       fromDatabase:
+  #         name: chat-db
+  #         property: connectionString
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: redis-chat
+  #         property: connectionString
 
-  # --- Customers Service ---
-  - type: web
-    name: customers-service
-    runtime: docker
-    dockerContext: ./customers-service
-    dockerfilePath: ./customers-service/Dockerfile
-    plan: free
-    envVars:
-      - key: CUSTOMER_DATABASE_URL
-        fromDatabase:
-          name: customer-db
-          property: connectionString
+  # # --- Customers Service ---
+  # - type: web
+  #   name: customers-service
+  #   runtime: docker
+  #   dockerContext: ./customers-service
+  #   dockerfilePath: ./customers-service/Dockerfile
+  #   plan: free
+  #   envVars:
+  #     - key: CUSTOMER_DATABASE_URL
+  #       fromDatabase:
+  #         name: customer-db
+  #         property: connectionString
 
-  # --- Employees Service ---
-  - type: web
-    name: employees-service
-    runtime: docker
-    dockerContext: ./employees-service
-    dockerfilePath: ./employees-service/Dockerfile
-    plan: free
-    envVars:
-      - key: EMPLOYEE_DATABASE_URL
-        fromDatabase:
-          name: employee-db       # Fixed: Points to renamed database
-          property: connectionString
+  # # --- Employees Service ---
+  # - type: web
+  #   name: employees-service
+  #   runtime: docker
+  #   dockerContext: ./employees-service
+  #   dockerfilePath: ./employees-service/Dockerfile
+  #   plan: free
+  #   envVars:
+  #     - key: EMPLOYEE_DATABASE_URL
+  #       fromDatabase:
+  #         name: employee-db       # Fixed: Points to renamed database
+  #         property: connectionString
 
-  # --- Essays Service ---
-  - type: web
-    name: essays-service
-    runtime: docker
-    dockerContext: ./essays-service
-    dockerfilePath: ./essays-service/Dockerfile
-    plan: free
-    envVars:
-      - key: ESSAY_DATABASE_URL
-        fromDatabase:
-          name: essay-db
-          property: connectionString
+  # # --- Essays Service ---
+  # - type: web
+  #   name: essays-service
+  #   runtime: docker
+  #   dockerContext: ./essays-service
+  #   dockerfilePath: ./essays-service/Dockerfile
+  #   plan: free
+  #   envVars:
+  #     - key: ESSAY_DATABASE_URL
+  #       fromDatabase:
+  #         name: essay-db
+  #         property: connectionString
 
-  # --- Managed Redis Cache ---
-  - type: redis
-    name: redis-chat
-    plan: free
-    ipAllowList: []
+  # # --- Managed Redis Cache ---
+  # - type: redis
+  #   name: redis-chat
+  #   plan: free
+  #   ipAllowList: []
 # --- Managed PostgreSQL Databases ---
 databases:
   - name: product-db
