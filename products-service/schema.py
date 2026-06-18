@@ -10,7 +10,7 @@ from routes import (
     delete_product,
     delete_all_products,
 )
- 
+
 
 # resolver
 def resolver_product(id: int) -> Optional[Product]:
