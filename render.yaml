@@ -69,12 +69,24 @@ services:
           name: employee-app-db       # Fixed: Points to renamed database
           property: connectionString
 
+  # --- Essays Service ---
+  - type: web
+    name: essays-service
+    runtime: docker
+    dockerContext: ./essays-service
+    dockerfilePath: ./essays-service/Dockerfile
+    plan: free
+    envVars:
+      - key: ESSAY_DATABASE_URL
+        fromDatabase:
+          name: essay-db
+          property: connectionString
+
   # --- Managed Redis Cache ---
   - type: redis
     name: redis-chat
     plan: free
     ipAllowList: []
-
 # --- Managed PostgreSQL Databases ---
 databases:
   - name: product-db
@@ -85,5 +97,7 @@ databases:
     plan: free
   - name: customer-db
     plan: free
-  - name: employee-app-db            # Fixed: Renamed to avoid 'user-gcs-key' secret clash
+  - name: employee-app-db            
+    plan: free
+ - name: essays-db            
     plan: free
