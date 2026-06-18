@@ -1,10 +1,10 @@
 services:
   # --- Products Service ---
   - type: web
-    name: products-service
+    name: product-service
     runtime: docker
-    dockerContext: ./products-service
-    dockerfilePath: ./products-service/Dockerfile
+    dockerContext: ./product-service
+    dockerfilePath: ./product-service/Dockerfile
     plan: free
     envVars:
       - key: PRODUCT_DATABASE_URL
