@@ -97,7 +97,7 @@ databases:
     plan: free
   - name: customer-db
     plan: free
-  - name: employee-db            
+  - name: essay-db            
     plan: free
- - name: essay-db            
+  - name: employee-db            
     plan: free
