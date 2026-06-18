@@ -231,8 +231,8 @@ volumes:
   products_db_data:
   orders_db_data:
   chats_db_data:
-  customers_db_data:
 
+  customers_db_data:
   employees_db_data:
   essays_db_data:
   redis_data:
