@@ -12,7 +12,7 @@ services:
           name: new-product-db
           property: connectionString
 
-  --- Orders Service (Disabled) ---
+  # --- Orders Service (Disabled) ---
   - type: web
     name: orders-service
     runtime: docker
