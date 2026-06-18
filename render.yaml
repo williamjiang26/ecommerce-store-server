@@ -43,7 +43,7 @@ services:
           name: redis-chat
           property: connectionString
 
-  --- Customers Service (Disabled) ---
+  # --- Customers Service (Disabled) ---
   - type: web
     name: customers-service
     runtime: docker
