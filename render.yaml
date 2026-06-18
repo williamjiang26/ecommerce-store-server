@@ -91,13 +91,13 @@ services:
 databases:
   - name: product-db
     plan: free
-  - name: order-db
-    plan: free
-  - name: chat-db
-    plan: free
-  - name: customer-db
-    plan: free
-  - name: employee-db            
-    plan: free
-  - name: essay-db            
-    plan: free
+  # - name: order-db
+  #   plan: free
+  # - name: chat-db
+  #   plan: free
+  # - name: customer-db
+  #   plan: free
+  # - name: employee-db            
+  #   plan: free
+  # - name: essay-db            
+  #   plan: free
