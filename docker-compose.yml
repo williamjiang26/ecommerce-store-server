@@ -70,6 +70,7 @@ services:
       orders_db:
         condition: service_healthy
 
+
   # --- Chats Service ---
   chats_db:
     platform: linux/amd64
@@ -177,6 +178,41 @@ services:
       employees_db:
         condition: service_healthy
 
+  # --- Essays Service ---
+  essays_db:
+    platform: linux/amd64
+    image: postgres:15-alpine
+    container_name: postgres_essay_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: essay
+    ports:
+      - "5439:5432"
+    volumes:
+      - essays_db_data:/var/lib/postgresql/data
+    healthcheck: # Tells Docker when the DB is genuinely awake
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d essay"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  essays-service:
+    platform: linux/amd64
+    build: ./essays-service
+    container_name: app_essays
+    restart: always
+    ports:
+      - "8007:8000"
+    environment:
+      ESSAY_DATABASE_URL: ${ESSAY_DATABASE_URL}
+    volumes:
+      - ./essays-service:/app
+    depends_on:
+      essays_db:
+        condition: service_healthy
+
   redis-chat:
     platform: linux/amd64
     image: redis:alpine
@@ -196,6 +232,7 @@ volumes:
   orders_db_data:
   chats_db_data:
   customers_db_data:
-  employees_db_data:
 
+  employees_db_data:
+  essays_db_data:
   redis_data:
