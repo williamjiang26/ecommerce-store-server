@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   # --- Products Service ---
-  db:
+  products_db:
     platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_product_db
@@ -10,20 +10,20 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER} # Explicitly use user for username
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: product
+      POSTGRES_DB: products
     ports:
       - "5435:5432"
     volumes:
-      - products_db_data:/var/lib/postgresql/data
+      - product_db_data:/var/lib/postgresql/data
     healthcheck: # Tells Docker when the DB is genuinely awake
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d product"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d products"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  products-service:
+  product-service:
     platform: linux/amd64
-    build: ./products-service
+    build: ./product-service
     container_name: app_products
     restart: always
     ports:
@@ -31,9 +31,9 @@ services:
     environment:
       PRODUCT_DATABASE_URL: ${PRODUCT_DATABASE_URL}
     volumes:
-      - ./products-service:/app
+      - ./product-service:/app
     depends_on:
-      db:
+      products_db:
         condition: service_healthy
   # --- Orders Service ---
   orders_db:
@@ -228,7 +228,7 @@ services:
       - redis_data:/data
 
 volumes:
-  products_db_data:
+  product_db_data:
   orders_db_data:
   chats_db_data:
 
