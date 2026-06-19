@@ -2,7 +2,7 @@ import strawberry
 from typing import Optional
 from dotenv import load_dotenv
 
-from dotenv import load_dotenv
+
 from sqlmodel import SQLModel, Field 
 load_dotenv()
 

@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   # --- Products Service ---
-  products_db:
+  db:
     platform: linux/amd64
     image: postgres:15-alpine
     container_name: postgres_product_db
@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USER} # Explicitly use user for username
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: products
+      POSTGRES_DB: postgres
     ports:
       - "5435:5432"
     volumes:
@@ -33,7 +33,7 @@ services:
     volumes:
       - ./product-service:/app
     depends_on:
-      products_db:
+      db:
         condition: service_healthy
   # --- Orders Service ---
   orders_db:

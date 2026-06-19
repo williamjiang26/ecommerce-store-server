@@ -4,9 +4,13 @@ from models import ProductTable
 
 import os
 from typing import List, Optional
-DATABASE_URL = os.getenv("PRODUCT_DATABASE_URL")
-engine = create_engine(DATABASE_URL, echo=True)
+
+DATABASE_URL = os.getenv("DATABASE_URL")
  
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True
+)
 # functions
 # get product id
 def get_product(id: int):
