@@ -55,6 +55,7 @@ async def send_message(sender_type: str, sender_name: str, text: str, room_id: s
         "text": text,  
         "room_id": room_id
     }
+    print(payload)
     # 1. Target the distinct client's stream key
     stream_key = f"chat:room:{room_id}"
     message_id = await redis_client.xadd(stream_key, {"data": json.dumps(payload)}, id="*")
@@ -69,6 +70,7 @@ async def send_message(sender_type: str, sender_name: str, text: str, room_id: s
     background_tasks.add_task(_save_to_db_background, sender_type, sender_name, text, room_id)
 
     return payload
+
 
 
 async def listen_messages(room_id: str) -> AsyncGenerator[Message, None]:
