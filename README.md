@@ -3,13 +3,13 @@ event driven server for ecommerce store
 
 
 # tech stack
-- fastapi, graphql
-- gRPC, redis, kafka
-- docker, kubernetes
-
-
-
-
+- fastapi
+- graphql
+- gRPC
+- redis
+- kafka
+- docker
+- kubernetes
 
 
 # services
