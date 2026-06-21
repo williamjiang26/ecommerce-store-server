@@ -1,5 +1,5 @@
 # ecommerce-store
-event driven server for ecommerce store
+event-driven server for ecommerce store
 
 
 # tech stack
