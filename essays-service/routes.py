@@ -9,9 +9,9 @@ DATABASE_URL = os.getenv("ESSAY_DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
 
 # 1. Fetch single essay by integer ID
-def get_essay(id: int) -> Optional[EssayTable]:
+def get_essay(title: str) -> Optional[EssayTable]:
     with Session(engine) as session:
-        return session.get(EssayTable, id)
+        return session.get(EssayTable, title)
 
 # 2. Fetch all essays
 def get_essays() -> List[EssayTable]:

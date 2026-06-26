@@ -1,6 +1,6 @@
 import strawberry
 from typing import List, Optional
-from models import Customer
+from models import Customer, Orders, Account
 
 from routes import (
     get_customers,
@@ -16,28 +16,28 @@ from routes import (
 def resolver_customer(id: int) -> Optional[Customer]:
     c = get_customer(id)
     if c:
-        return Customer(id=c.id, name=c.name)
+        return Customer(id=c.id, account_info=c.account_info, orders=c.orders, shopping_cart=c.shopping_cart)
     return None
 
 
 def resolver_customers() -> List[Customer]:
     updated_customers = get_customers()
-    return [Customer(id=c.id, name=c.name) for c in updated_customers]
+    return [Customer(id=c.id, account_info=c.account_info, orders=c.orders, shopping_cart=c.shopping_cart) for c in updated_customers]
 
 
-def resolver_post_customer(id: int, name: str) -> List[Customer]:
-    updated_customers = post_customer(id, name)
-    return [Customer(id=c.id, name=c.name) for c in updated_customers]
+def resolver_post_customer(id: int, account_info: Account, orders: Orders   ) -> List[Customer]:
+    updated_customers = post_customer(id, account_info, orders)
+    return [Customer(id=c.id, account_info=c.account_info, orders=c.orders, shopping_cart=c.shopping_cart) for c in updated_customers]
 
 
-def resolver_update_customer(id: int, name: str) -> List[Customer]:
-    updated_customers = update_customer(id, name)
-    return [Customer(id=c.id, name=c.name) for c in updated_customers]
+def resolver_update_customer(id: int, account_info: Account, orders: Orders) -> List[Customer]:
+    updated_customers = update_customer(id, account_info, orders)
+    return [Customer(id=c.id, account_info=c.account_info, orders=c.orders, shopping_cart=c.shopping_cart) for c in updated_customers]
 
 
 def resolver_delete_customer(id: int) -> List[Customer]:
     updated_customers = delete_customer(id)
-    return [Customer(id=c.id, name=c.name) for c in updated_customers]
+    return [Customer(id=c.id, account_info=c.account_info, orders=c.orders, shopping_cart=c.shopping_cart) for c in updated_customers]
 
 
 def resolver_delete_customers() -> List[Customer]:

@@ -15,8 +15,8 @@ from routes import (
 # GRAPHQL RESOLVERS
 # =====================================================================
 
-def resolver_essay(id: int) -> Optional[Essay]:
-    e = get_essay(id)
+def resolver_essay(title: str) -> Optional[Essay]:
+    e = get_essay(title)
     if e:
         return Essay(id=e.id, date=e.date, title=e.title, content=e.content)
     return None

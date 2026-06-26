@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request,BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pinecone import Pinecone
 from openai import AsyncOpenAI
-from typing import AsyncGenerator, Set, List, Dict
+from typing import AsyncGenerator, List, Dict
 import uuid
 import redis.asyncio as aioredis
 import json
@@ -161,8 +161,8 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("cxsupport")
 
 
-SYSTEM_PROMPT = """
-You are an intelligent assistant specialized in helping customers find out about their order details. 
+
+SYSTEM_PROMPT = """ You are an intelligent assistant specialized in helping customers find out about their order details. 
 Customers will ask you about their order details, make sure to ask for their invoice number and name. If you dont have an invoice number and a name do not reveal any order details. 
 Once you have confirmed these two pieces of information, go ahead search for their order in the database and 
 respond with the products in their order and order total. If and only if the customer asks about servicing their order and the order is more than 3 years old, inform them it is out of our warranty and would incur a cost but we would be happy to help them schedule a service date.
@@ -180,15 +180,13 @@ openrouter_client = AsyncOpenAI(
 @api_router.post("/chat")
 async def chat_endpoint(request: Request, background_tasks: BackgroundTasks):
 
-    # 1. Parse the entire incoming chat history array
     payload = await request.json()
-    print(payload)
+    # print(payload)
     room_id = payload.get('roomId')
     chat_history: List[Dict[str, str]] = payload.get("messages", [])
     if not room_id or not chat_history:
         return {"error", "Missing roomId or messages history"}, 400
 
-        # 
     last_message = chat_history[-1]
     text = last_message.get("content", "")     
     user_payload = {
@@ -226,7 +224,6 @@ async def chat_endpoint(request: Request, background_tasks: BackgroundTasks):
     # 5. Build the context string from matched data
     result_string = "Returned results:"
     for match in results.get("matches", []):
-        print(f"🚀 ~ POST ~ match: {match}")
         metadata = match.get("metadata", {})
         result_string += f"""\n
         InvoiceNo: {match.get('id')}
