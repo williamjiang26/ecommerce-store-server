@@ -23,7 +23,7 @@ services:
 
   products-service:
     platform: linux/amd64
-    build: ./product-service
+    build: ./products-service
     container_name: app_products
     restart: always
     ports:
@@ -31,10 +31,10 @@ services:
     environment:
       PRODUCT_DATABASE_URL: ${PRODUCT_DATABASE_URL}
     volumes:
-      - ./product-service:/app
-    depends_on:
-      db:
-        condition: service_healthy
+      - ./products-service:/app
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
   # --- Orders Service ---
   orders_db:
     platform: linux/amd64

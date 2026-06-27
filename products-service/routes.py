@@ -5,7 +5,7 @@ from models import ProductTable
 import os
 from typing import List, Optional
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("PRODUCT_DATABASE_URL")
  
 engine = create_engine(
     DATABASE_URL, 
@@ -44,9 +44,7 @@ def update_product(id:int, name: str, img:str, stock:bool, price:int, priceId:Op
         update_product = session.get(ProductTable, id)
         if not update_product:
             return session.exec(select(ProductTable)).all()
-        update_product.name = name
-        #
-        print(update_product)
+        update_product.name = name 
         update_product.img = img
         update_product.stock = stock
         update_product.price = price
