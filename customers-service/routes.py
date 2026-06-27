@@ -23,8 +23,15 @@ def get_customer(id: int):
 # get customers
 def get_customers():
     with Session(engine) as session:
-        statement = select(CustomerTable)
-        db_customers = session.exec(statement).all()
+        statement = (
+            select(CustomerTable)
+            .options(
+                joinedload(CustomerTable.account_information),
+                joinedload(CustomerTable.orders),
+                joinedload(CustomerTable.shopping_cart)
+            )
+        )
+        db_customers = session.exec(statement).unique().all()
         return db_customers
 
 # post customer - create new user
@@ -49,7 +56,15 @@ def post_customer(account_information: AccountInput):
         session.add(new_row)
         session.commit()
         session.refresh(new_row)
-        db_customers = session.exec(select(CustomerTable)).all()
+        statement = (
+            select(CustomerTable)
+            .options(
+                joinedload(CustomerTable.account_information),
+                joinedload(CustomerTable.orders),
+                joinedload(CustomerTable.shopping_cart)
+            )
+        )
+        db_customers = session.exec(statement).unique().all()
         return db_customers
 
 # update customer
