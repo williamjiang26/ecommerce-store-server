@@ -8,9 +8,13 @@ from sqlmodel import SQLModel, Field , Relationship
 class Account:
     id: int
     email: str
+    # points_balance: int
 
 
 
+@strawberry.input
+class AccountInput:
+    email: str
 
 @strawberry.type
 class Orders:
@@ -18,20 +22,28 @@ class Orders:
     productId: int
     isPurchased: bool
 
+@strawberry.input
+class OrdersInput:
+    productId: int
+    isPurchased: bool
 
 
 
 
-@strawberry.type
+
+
+@strawberry.type 
 class Customer:
     id: int
     account_information: Account
     shopping_cart: List[Orders]
     orders: List[Orders]
 
+
+
+
 class AccountTable(SQLModel, table=True):
     __tablename__ = "accounts"
-
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str
     customer_id: int = Field(foreign_key="customers.id")
@@ -39,9 +51,9 @@ class AccountTable(SQLModel, table=True):
 
 class OrderTable(SQLModel, table=True):
     __tablename__ = "orders"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    product_id: int
 
+    id: Optional[int] = Field(default=None, primary_key=True)
+    product_id: int 
     is_purchased: bool
     # Foreign keys to distinguish between cart items and past orders
     cart_customer_id: Optional[int] = Field(default=None, foreign_key="customers.id")
@@ -49,8 +61,8 @@ class OrderTable(SQLModel, table=True):
 
 class CustomerTable(SQLModel, table=True):
     __tablename__ = "customers"
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    
     # Fix: Replaced invalid List[Orders] column assignments with database relationships
     account_information: AccountTable = Relationship(
         back_populates="customer", 
@@ -59,6 +71,7 @@ class CustomerTable(SQLModel, table=True):
     shopping_cart: List[OrderTable] = Relationship(
         sa_relationship_kwargs={"primaryjoin": "CustomerTable.id==OrderTable.cart_customer_id"}
     )
+    
     orders: List[OrderTable] = Relationship(
         sa_relationship_kwargs={"primaryjoin": "CustomerTable.id==OrderTable.order_customer_id"}
     )

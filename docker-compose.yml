@@ -21,7 +21,7 @@ services:
       timeout: 5s
       retries: 5
 
-  product-service:
+  products-service:
     platform: linux/amd64
     build: ./product-service
     container_name: app_products
@@ -115,9 +115,9 @@ services:
     container_name: postgres_customer_db
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER} # Explicitly use user for username
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: customer
+      POSTGRES_USER: "%40Dinwiddie%401233" # Explicitly use user for username
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: customers
     ports:
       - "5438:5432"
     volumes:
@@ -139,9 +139,9 @@ services:
       CUSTOMER_DATABASE_URL: ${CUSTOMER_DATABASE_URL}
     volumes:
       - ./customers-service:/app
-    depends_on:
-      customers_db:
-        condition: service_healthy
+    # depends_on:
+    #   customers_db:
+    #     condition: service_healthy
 
   # --- Employees Service ---
   employees_db:

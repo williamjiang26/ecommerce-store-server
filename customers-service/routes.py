@@ -1,21 +1,16 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from sqlmodel import SQLModel, Field, create_engine, Session, select, delete
 import os
 
 from dotenv import load_dotenv
-from models import Customer, Orders, Account, AccountTable
+from models import Customer, Orders, OrdersInput, AccountInput, AccountTable, CustomerTable, OrderTable
 load_dotenv()
-
+from sqlalchemy.orm import joinedload
 DATABASE_URL = os.getenv("CUSTOMER_DATABASE_URL")
 # Create the async engine
 engine = create_engine(DATABASE_URL, echo=True)
 
 
-# SQLModel DB Table Definition (Acts as both SQLAlchemy table and Pydantic validation)
-class CustomerTable(SQLModel, table=True):
-    __tablename__ = "customers"
-    id: int = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False)
 
 
 # functions
@@ -32,49 +27,74 @@ def get_customers():
         db_customers = session.exec(statement).all()
         return db_customers
 
-
-
 # post customer - create new user
-def post_customer(id: int, account_info: Account):
-    with Session(engine) as session:   
-        customer = session.get(CustomerTable, account_info.email)
-        if not customer:
-            db_account = AccountTable(
-            email=account_info.email,
+def post_customer(account_information: AccountInput):
+    with Session(engine) as session:  
+  
 
-            customer_id=id 
+        existing_account = session.exec(
+            select(AccountTable).where(AccountTable.email == account_information.email)
+        ).first()
+        if existing_account:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="An account with this email already exists."
+            ) 
+        new_row = CustomerTable()
+        db_account = AccountTable(
+            email=account_information.email,
+            customer=new_row 
         )
-        new_row = CustomerTable(id=id, account_info=db_account)
+        new_row.account_information = db_account
         session.add(new_row)
         session.commit()
-        statement = select(CustomerTable)
-        db_customers = session.exec(statement).all()
+        session.refresh(new_row)
+        db_customers = session.exec(select(CustomerTable)).all()
         return db_customers
-
-
 
 # update customer
-def update_customer(id, account_info: Account, orders: Orders):
+def update_customer_orders(account_information: AccountInput, orders: OrdersInput):
     with Session(engine) as session:
-        update_customer = session.get(CustomerTable, id)
+        account = session.exec(select(AccountTable).where(AccountTable.email == account_information.email)).first()
+        update_customer = session.get(CustomerTable, account.customer_id)
         if not update_customer:
-            return session.exec(select(CustomerTable)).all()
-        update_customer.account_info = account_info
-        if orders:
+            return session.exec(select(CustomerTable)).unique().all()
+        order = OrderTable(product_id=orders.productId, is_purchased=orders.isPurchased)
+        print(order)
 
-            if orders.isPurchased:
-                update_customer.orders.append(orders)
-                if orders.id in update_customer.shopping_bag:
-                    update_customer.shopping_bag.remove(orders.id)
-            else:
-                if orders.id not in update_customer.shopping_bag:
-                    update_customer.shopping_bag.append(orders)
+        if orders.isPurchased:
+            order.order_customer_id = update_customer.id
+            order.cart_customer_id = None
+        else:
+             order.cart_customer_id = update_customer.id
+             order.order_customer_id = None
+        session.add(order)
+        session.commit()
+        session.expire_all() 
+        statement = (
+            select(CustomerTable)
+            .options(
+                joinedload(CustomerTable.account_information),
+                joinedload(CustomerTable.orders),
+                joinedload(CustomerTable.shopping_cart)
+            )
+        )
+        db_customers = session.exec(statement).unique().all()
+        return db_customers
+
+def update_customer_information(account_information: AccountInput):
+    with Session(engine) as session:
+        account = session.exec(select(AccountTable).where(AccountTable.email == account_information.email)).first()
+        update_customer = session.get(CustomerTable, account.customer_id)
+        if not update_customer:
+            return session.exec(select(CustomerTable)).all() 
+        update_customer.account_information = account_information # update necessary fields only no email
         session.add(update_customer)
         session.commit()
-
         statement = select(CustomerTable)
         db_customers = session.exec(statement).all()
         return db_customers
+
 # delete customer
 def delete_customer(id: int):
     with Session(engine) as session:
@@ -96,21 +116,17 @@ def delete_all_customers():
 
         return []
 
+
+
 # rest endpoints
 api_router = APIRouter(prefix="/api", tags=["customers"])
-
-
-
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
-
 @api_router.on_event("startup")
 def on_startup():
     create_db_and_tables()
-
-
 
 @api_router.get("/check")
 def health_check():
