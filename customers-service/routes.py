@@ -85,14 +85,15 @@ def update_customer_orders(account_information: AccountInput, orders: OrdersInpu
         if not update_customer:
             return session.exec(select(CustomerTable)).unique().all()
         order = OrderTable(product_id=orders.productId, is_purchased=orders.isPurchased)
-        print(order)
-
         if orders.isPurchased:
             order.order_customer_id = update_customer.id
             order.cart_customer_id = None
         else:
-             order.cart_customer_id = update_customer.id
-             order.order_customer_id = None
+            similar_orders = [o for o in update_customer.shopping_cart if order.product_id == o.product_id]
+            print(similar_orders)
+            if len([o.cart_customer_id for o in similar_orders if update_customer.id == o.cart_customer_id]) == 0:
+                order.cart_customer_id = update_customer.id
+                order.order_customer_id = None
         session.add(order)
         session.commit()
         session.expire_all() 
