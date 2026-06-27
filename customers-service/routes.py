@@ -16,8 +16,18 @@ engine = create_engine(DATABASE_URL, echo=True)
 # functions
 # get customer
 def get_customer(id: int):
-    with Session(engine) as session:
-        customer = session.get(CustomerTable, id)
+   with Session(engine) as session: 
+        statement = (
+            select(CustomerTable)
+            .where(CustomerTable.id == id)
+            .options(
+                joinedload(CustomerTable.account_information),
+                joinedload(CustomerTable.orders),
+                joinedload(CustomerTable.shopping_cart)
+            )
+        )
+        # use grpc to get the product details
+        customer = session.exec(statement).unique().first()
         return customer
 
 # get customers

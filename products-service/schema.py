@@ -16,13 +16,13 @@ from routes import (
 def resolver_product(id: int) -> Optional[Product]:
     p = get_product(id)
     if p:
-        return Product(id=p.id, name=p.name)
+        return Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId)
     return None
 
 
 def resolver_products() -> List[Product]:
     updated_products = get_products()
-    return [Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId) for p in updated_products]
+    return [ Product(id=p.id,name=p.name,img=p.img,stock=p.stock,price=p.price,priceId=p.priceId)for p in updated_products]
 
 
 def resolver_post_product(name: str, img:str, stock:bool, price:int) -> List[Product]:
