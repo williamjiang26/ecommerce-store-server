@@ -94,6 +94,8 @@ def update_customer_orders(account_information: AccountInput, orders: OrdersInpu
             if len([o.cart_customer_id for o in similar_orders if update_customer.id == o.cart_customer_id]) == 0:
                 order.cart_customer_id = update_customer.id
                 order.order_customer_id = None
+            else:
+                return ValueError("already in cart")
         session.add(order)
         session.commit()
         session.expire_all() 
@@ -142,7 +144,15 @@ def delete_all_customers():
 
         return []
 
+# delete many
+def delete_order_cart(account_information: AccountInput, orders: OrdersInput):
+    with Session(engine) as session:
+        statement = delete(CustomerTable)
+        session.exec(statement)
 
+        session.commit()
+
+        return []
 
 # rest endpoints
 api_router = APIRouter(prefix="/api", tags=["customers"])

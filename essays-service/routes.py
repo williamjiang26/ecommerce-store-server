@@ -8,16 +8,28 @@ from models import EssayTable
 DATABASE_URL = os.getenv("ESSAY_DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
 
+
+
+
+
 # 1. Fetch single essay by integer ID
 def get_essay(title: str) -> Optional[EssayTable]:
     with Session(engine) as session:
-        return session.get(EssayTable, title)
+        existing_account = session.exec(
+            select(EssayTable).where(EssayTable.title == title)
+        ).first()
+        return existing_account
+
 
 # 2. Fetch all essays
 def get_essays() -> List[EssayTable]:
     with Session(engine) as session:
         statement = select(EssayTable)
         return list(session.exec(statement).all())
+
+
+
+
 
 # 3. Create a new essay and return updated list
 def post_essay(date: str, title: str, content: Optional[str] = None) -> List[EssayTable]:
@@ -39,6 +51,7 @@ def update_essay(id: int, date: str, title: str, content: Optional[str] = None) 
             statement = select(EssayTable)
             return list(session.exec(statement).all())
             
+
         db_essay.date = date
         db_essay.title = title
         db_essay.content = content
@@ -56,7 +69,6 @@ def delete_essay(id: int) -> List[EssayTable]:
         if essay_to_delete:
             session.delete(essay_to_delete)
             session.commit()
-            
         statement = select(EssayTable)
         return list(session.exec(statement).all())
 
@@ -67,6 +79,8 @@ def delete_all_essays() -> List[EssayTable]:
         session.exec(statement)
         session.commit()
         return []
+
+
 
 api_router = APIRouter(prefix="/api", tags=["Essays"])
 def create_db_and_tables():
